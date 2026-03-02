@@ -1,0 +1,53 @@
+<launch>
+    <!-- 
+    TP2: Path Following and Global Planning Verification
+    local_planner arg: "dwa" (default) or "reactive"  
+    -->
+    
+    <arg name="v_max" default="0.5" />
+    <arg name="w_max" default="1.2" />
+    <arg name="lookahead_distance" default="0.4" />
+    <arg name="safety_distance" default="0.35" />
+    <arg name="local_planner" default="dwa" description="Local planner: 'reactive' or 'dwa'" />
+    
+    <!-- Simulation Environment -->
+    <include file="$(find-pkg-share pacr_simulation)/launch/test_goto.launch.xml">
+        <arg name="v_max" value="$(var v_max)"/>
+        <arg name="w_max" value="$(var w_max)"/>
+    </include>
+    
+    <!-- Global Path Planning Node (A*) -->
+    <node pkg="pacr_solutions" exec="path_planning" name="path_planning" output="screen">
+        <param name="timeout" value="5.0" />
+    </node>
+
+    <!-- Reactive Local Planner (default) -->
+    <node pkg="pacr_solutions" exec="path_following" name="path_following" output="screen"
+          if="$(eval '\'$(var local_planner)\' == \'reactive\'')">
+        <remap from="scan" to="/controlled_robot/scan" />
+        <param name="v_max" value="$(var v_max)" />
+        <param name="w_max" value="$(var w_max)" />
+        <param name="lookahead_distance" value="$(var lookahead_distance)" />
+        <param name="safety_distance" value="$(var safety_distance)" />
+    </node>
+    <!-- DWA Deliberative Local Planner -->
+    <node pkg="pacr_solutions" exec="dwa_path_following" name="dwa_path_following" output="screen"
+          if="$(eval '\'$(var local_planner)\' == \'dwa\'')">
+        <remap from="costmap" to="costmap" />
+        <param name="v_max" value="$(var v_max)" />
+        <param name="w_max" value="$(var w_max)" />
+        <param name="prediction_horizon" value="4.0" />
+        <param name="dt" value="0.2" />
+        <param name="v_samples" value="13" />
+        <param name="w_samples" value="31" />
+        <param name="heading_weight" value="0.50" />
+        <param name="clearance_weight" value="0.50" />
+        <param name="velocity_weight" value="0.20" />
+        <param name="safety_margin" value="0.15" />
+        <param name="lookahead_distance" value="1.5" />
+        <param name="static_frame_id" value="world" />
+        <param name="other_frame_id" value="concurrent_robot/base_link" />
+    </node>
+    
+
+</launch>
