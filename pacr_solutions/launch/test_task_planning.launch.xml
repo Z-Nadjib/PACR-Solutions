@@ -1,0 +1,55 @@
+<launch>
+    <!-- 
+    TP3: Full System Integration (Task, Path, and Local Planning)
+    local_planner arg: "reactive"  or "dwa"(default)
+    -->
+
+    <arg name="local_planner" default="dwa" description="Local planner: 'reactive' or 'dwa'" />
+
+    <!-- Simulation Infrastructure -->
+    <include file="$(find-pkg-share pacr_simulation)/launch/pacr_simulation_executive.launch.xml"> </include>
+
+    <!-- MDP Task Planning Node (TP3) -->
+    <node pkg="pacr_solutions" exec="task_planning" name="task_planning" output="screen"> </node>
+
+    <!-- Global Path Planning Node (A*) -->
+    <node pkg="pacr_solutions" exec="path_planning" name="path_planning" output="screen">
+        <param name="timeout" value="5.0"/>
+    </node>
+
+
+
+    <!-- DWA Deliberative Local Planner (default) -->
+    <node pkg="pacr_solutions" exec="dwa_path_following" name="dwa_path_following" output="screen"
+          if="$(eval '\'$(var local_planner)\' == \'dwa\'')">
+        <remap from="costmap" to="costmap"/>
+        <param name="v_max" value="0.5"/>
+        <param name="w_max" value="1.0"/>
+        <param name="v_acc_max" value="0.5"/>
+        <param name="w_acc_max" value="2.0"/>
+        <param name="prediction_horizon" value="3.0"/>
+        <param name="dt" value="0.1"/>
+        <param name="v_samples" value="13"/>
+        <param name="w_samples" value="31"/>
+        <param name="heading_weight" value="0.45"/>
+        <param name="clearance_weight" value="0.35"/>
+        <param name="velocity_weight" value="0.20"/>
+        <param name="safety_margin" value="0.50"/>
+        <param name="lookahead_distance" value="0.8"/>
+        <param name="static_frame_id" value="world"/>
+        <param name="other_frame_id" value="concurrent_robot/base_link"/>
+    </node>
+    <!-- Reactive Local Planner -->
+    <node pkg="pacr_solutions" exec="path_following" name="path_following" output="screen"
+          if="$(eval '\'$(var local_planner)\' == \'reactive\'')">
+        <remap from="scan" to="/controlled_robot/scan"/>
+        <remap from="costmap" to="costmap"/>
+        <param name="v_max" value="0.5"/>
+        <param name="w_max" value="1.0"/>
+        <param name="lookahead_distance" value="0.4"/>
+        <param name="safety_radius" value="2.5"/>
+        <param name="v_boost_factor" value="1.5"/>
+        <param name="static_frame_id" value="world"/>
+        <param name="other_frame_id" value="concurrent_robot/base_link"/>
+    </node>
+</launch>
