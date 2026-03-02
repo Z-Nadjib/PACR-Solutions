@@ -1,0 +1,22 @@
+<launch>
+    <!-- 
+    ──────────────────────────────────────────────────────────────────────────
+    TP1: Global Path Planning (A*) Verification
+    ──────────────────────────────────────────────────────────────────────────
+    This launch file serves as the testbench for the TP1 mission. It brings 
+    up the core simulation environment and integrates the custom A* 
+    global planning node to compute optimal trajectories on costmaps. the node is just for visualization of the path planning algorithm.
+    it doesn't control the robot. it just publishes the path to a topic.
+    -->
+
+    <!-- ── Simulation Infrastructure ── -->
+    <include file="$(find-pkg-share pacr_simulation)/launch/test_path_planning.launch.xml" />
+    
+    <!-- ── Solution Nodes ── -->
+
+    <!-- Global Path Planning Node (A*) -->
+    <node pkg="pacr_solutions" exec="path_planning" name="path_planning" output="screen">
+        <param name="timeout" value="5.0" />
+    </node>
+
+</launch>
